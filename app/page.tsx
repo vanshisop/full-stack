@@ -1,101 +1,119 @@
-import Image from "next/image";
+'use client'
 
-export default function Home() {
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Rocket, ArrowLeft } from "lucide-react"
+
+export default function PlayPage() {
+  const [guess, setGuess] = useState('')
+  const [message, setMessage] = useState('')
+  const [attempts, setAttempts] = useState(0)
+  const [targetNumber, setTargetNumber] = useState(0)
+  const [gameOver, setGameOver] = useState(false)
+  const [name, setName] = useState('')
+  const [bestScore, setBestScore] = useState(0)
+  const router = useRouter()
+
+  useEffect(() => {
+    // Generate a random number between 1 and 100
+    setTargetNumber(Math.floor(Math.random() * 100) + 1)
+
+    // Safely access sessionStorage on the client side
+    if (typeof window !== 'undefined') {
+      const storedName = sessionStorage.getItem('name')
+      const storedBestScore = sessionStorage.getItem('bestScore')
+      if (storedName) setName(storedName)
+      if (storedBestScore) setBestScore(parseInt(storedBestScore, 10))
+    }
+  }, [])
+
+  const handleGuess = () => {
+    const guessNumber = parseInt(guess, 10)
+    setAttempts(attempts + 1)
+
+    if (guessNumber === targetNumber) {
+      setMessage('Congratulations! You guessed the number!')
+      setGameOver(true)
+      // Update best score if needed
+      if (attempts + 1 < bestScore || bestScore === 0) {
+        setBestScore(attempts + 1)
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('bestScore', (attempts + 1).toString())
+        }
+      }
+    } else if (guessNumber < targetNumber) {
+      setMessage('Too low! Try a higher number.')
+    } else {
+      setMessage('Too high! Try a lower number.')
+    }
+
+    setGuess('')
+  }
+
+  const handleRestart = () => {
+    setGuess('')
+    setMessage('')
+    setAttempts(0)
+    setTargetNumber(Math.floor(Math.random() * 100) + 1)
+    setGameOver(false)
+  }
+
+  const handleExit = () => {
+    router.push('/')
+  }
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-purple-900 via-indigo-900 to-black">
+      <div className="w-full max-w-md bg-gray-800 bg-opacity-80 rounded-lg shadow-lg p-8 space-y-6 border border-indigo-500">
+        <div className="text-center">
+          <Rocket className="mx-auto text-indigo-400" size={48} />
+          <h1 className="mt-4 text-3xl font-bold text-indigo-300">Cosmic Number Quest</h1>
+          <p className="mt-2 text-gray-300">Greetings, {name}! Can you guess the secret number?</p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+
+        <div className="space-y-4">
+          <Input
+            type="number"
+            value={guess}
+            onChange={(e) => setGuess(e.target.value)}
+            placeholder="Enter your guess (1-100)"
+            className="w-full bg-gray-700 text-white border-gray-600"
+            disabled={gameOver}
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          <Button
+            onClick={handleGuess}
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
+            disabled={gameOver}
+          >
+            Submit Guess
+          </Button>
+        </div>
+
+        {message && (
+          <p className="text-center text-lg font-semibold text-indigo-300">{message}</p>
+        )}
+
+        <p className="text-center text-gray-300">Attempts: {attempts}</p>
+        <p className="text-center text-gray-300">Best Score: {bestScore}</p>
+
+        {gameOver && (
+          <div className="space-y-4">
+            <Button onClick={handleRestart} className="w-full bg-green-600 hover:bg-green-700 text-white">
+              Play Again
+            </Button>
+            <Button onClick={handleExit} className="w-full bg-red-600 hover:bg-red-700 text-white">
+              Exit Game
+            </Button>
+          </div>
+        )}
+
+        <Button onClick={handleExit} className="w-full bg-gray-600 hover:bg-gray-700 text-white">
+          <ArrowLeft className="mr-2" size={20} />
+          Back to Main Menu
+        </Button>
+      </div>
     </div>
-  );
+  )
 }
