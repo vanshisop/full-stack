@@ -1,118 +1,203 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Rocket, ArrowLeft } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { Rocket, Atom, Trophy } from "lucide-react"
+import axios from 'axios'
+import { useRouter } from 'next/navigation'
 
-export default function PlayPage() {
-  const [guess, setGuess] = useState('')
-  const [message, setMessage] = useState('')
-  const [attempts, setAttempts] = useState(0)
-  const [targetNumber, setTargetNumber] = useState(0)
-  const [gameOver, setGameOver] = useState(false)
-  const [name, setName] = useState('')
-  const [bestScore, setBestScore] = useState(0)
+interface LeaderboardEntry {
+  rank: number
+  name: string
+  score: number
+}
+
+interface User {
+  full_name: string
+  best_score: number
+}
+
+export default function RegistrationPage() {
+  const [phoneNumber, setPhoneNumber] = useState("")
+  const [isValid, setIsValid] = useState(false)
+  const [validRegistration, setValidRegistration] = useState(true)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
-  useEffect(() => {
-    // Generate a random number between 1 and 100
-    setTargetNumber(Math.floor(Math.random() * 100) + 1)
+  const validatePhoneNumber = (number: string) => {
+    const phoneRegex = /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/
+    return phoneRegex.test(number)
+  }
 
-    // Safely access sessionStorage on the client side
-    if (typeof window !== 'undefined') {
-      const storedName = sessionStorage.getItem('name')
-      const storedBestScore = sessionStorage.getItem('bestScore')
-      if (storedName) setName(storedName)
-      if (storedBestScore) setBestScore(parseInt(storedBestScore, 10))
-    }
-  }, [])
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const number = e.target.value
+    setValidRegistration(true)
+    setPhoneNumber(number)
+    setIsValid(validatePhoneNumber(number))
+  }
 
-  const handleGuess = () => {
-    const guessNumber = parseInt(guess, 10)
-    setAttempts(attempts + 1)
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
 
-    if (guessNumber === targetNumber) {
-      setMessage('Congratulations! You guessed the number!')
-      setGameOver(true)
-      // Update best score if needed
-      if (attempts + 1 < bestScore || bestScore === 0) {
-        setBestScore(attempts + 1)
+    try {
+      const response = await axios.post('https://my-guessing-app-71ffba160115.herokuapp.com/check-registration', {
+        phoneNumber,
+      })
+
+      if (response.data.isRegistered) {
+        console.log(response.data.user)
         if (typeof window !== 'undefined') {
-          sessionStorage.setItem('bestScore', (attempts + 1).toString())
+          sessionStorage.setItem('bestScore', response.data.best_score.toString())
+          sessionStorage.setItem('phoneNumber', response.data.phoneNumber)
+          sessionStorage.setItem('name', response.data.user)
         }
+        router.push('/play')
+      } else {
+        setValidRegistration(false)
       }
-    } else if (guessNumber < targetNumber) {
-      setMessage('Too low! Try a higher number.')
-    } else {
-      setMessage('Too high! Try a lower number.')
+    } catch (error) {
+      console.error('Error checking registration:', error)
+      setError('An error occurred while checking registration. Please try again.')
+    } finally {
+      setLoading(false)
     }
-
-    setGuess('')
   }
 
-  const handleRestart = () => {
-    setGuess('')
-    setMessage('')
-    setAttempts(0)
-    setTargetNumber(Math.floor(Math.random() * 100) + 1)
-    setGameOver(false)
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault()
+    router.push('/register')
   }
 
-  const handleExit = () => {
-    router.push('/')
+  const handleLeaderboard = async () => {
+    setLoading(true)
+    setError(null)
+
+    try {
+      const response = await axios.post('https://my-guessing-app-71ffba160115.herokuapp.com/handle-leaderboard')
+      console.log(response.data)
+      
+      if (response.data.topUsers && Array.isArray(response.data.topUsers)) {
+        const leaderboardData: LeaderboardEntry[] = response.data.topUsers.map((user: User, index: number) => ({
+          rank: index + 1,
+          name: user.full_name,
+          score: user.best_score
+        }))
+        
+        setLeaderboard(leaderboardData)
+        setIsDialogOpen(true)
+        console.log('Leaderboard fetched successfully:', leaderboardData)
+      } else {
+        throw new Error('Invalid leaderboard data received')
+      }
+    } catch (error) {
+      console.error('Error fetching leaderboard:', error)
+      setError('Failed to fetch leaderboard. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-purple-900 via-indigo-900 to-black">
       <div className="w-full max-w-md bg-gray-800 bg-opacity-80 rounded-lg shadow-lg p-8 space-y-6 border border-indigo-500">
         <div className="text-center">
-          <Rocket className="mx-auto text-indigo-400" size={48} />
+          <Rocket className="mx-auto text-indigo-400" size={48} aria-hidden="true" />
           <h1 className="mt-4 text-3xl font-bold text-indigo-300">Cosmic Number Quest</h1>
-          <p className="mt-2 text-gray-300">Greetings, {name}! Can you guess the secret number?</p>
+          <p className="mt-2 text-gray-300">Log in to continue your galactic adventure!</p>
         </div>
 
-        <div className="space-y-4">
-          <Input
-            type="number"
-            value={guess}
-            onChange={(e) => setGuess(e.target.value)}
-            placeholder="Enter your guess (1-100)"
-            className="w-full bg-gray-700 text-white border-gray-600"
-            disabled={gameOver}
-          />
-          <Button
-            onClick={handleGuess}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
-            disabled={gameOver}
-          >
-            Submit Guess
-          </Button>
-        </div>
-
-        {message && (
-          <p className="text-center text-lg font-semibold text-indigo-300">{message}</p>
-        )}
-
-        <p className="text-center text-gray-300">Attempts: {attempts}</p>
-        <p className="text-center text-gray-300">Best Score: {bestScore}</p>
-
-        {gameOver && (
-          <div className="space-y-4">
-            <Button onClick={handleRestart} className="w-full bg-green-600 hover:bg-green-700 text-white">
-              Play Again
-            </Button>
-            <Button onClick={handleExit} className="w-full bg-red-600 hover:bg-red-700 text-white">
-              Exit Game
-            </Button>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <label htmlFor="phone" className="block text-sm font-medium text-gray-300">
+              Intergalactic Communication Code
+            </label>
+            <div className="relative">
+              <Atom className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} aria-hidden="true" />
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="Enter your 10-digit quantum ID"
+                value={phoneNumber}
+                onChange={handlePhoneChange}
+                className={`pl-10 bg-gray-700 text-white border-gray-600 ${isValid ? 'border-green-500' : ''}`}
+                aria-invalid={!isValid}
+                aria-describedby={!isValid ? "phone-error" : undefined}
+              />
+            </div>
+            {phoneNumber && !isValid && (
+              <p id="phone-error" className="text-sm text-red-400">Please enter a valid quantum ID.</p>
+            )}
+            {isValid && !validRegistration && (
+              <p className="text-sm text-red-400">You are not registered in our galactic database. Please register or enter a valid code.</p>
+            )}
           </div>
+
+          <Button
+            type="submit"
+            className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white"
+            disabled={loading}
+          >
+            {loading ? 'Initiating...' : 'Initiate Login Sequence'}
+          </Button>
+        </form>
+
+        <Button onClick={handleRegister}
+          type="button"
+          className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white"
+        >
+          Join the Cosmic Alliance
+        </Button>
+        <Button onClick={handleLeaderboard}
+          type="button"
+          className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white"
+          disabled={loading}
+        >
+          <Trophy className="mr-2" size={20} aria-hidden="true" />
+          {loading ? 'Loading...' : 'View Galactic Leaderboard'}
+        </Button>
+
+        {error && (
+          <p className="text-sm text-red-400 mt-2" role="alert">{error}</p>
         )}
 
-        <Button onClick={handleExit} className="w-full bg-gray-600 hover:bg-gray-700 text-white">
-          <ArrowLeft className="mr-2" size={20} />
-          Back to Main Menu
-        </Button>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent className="bg-gray-800 text-white">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold text-indigo-300">Galactic Leaderboard</DialogTitle>
+              <DialogDescription className="text-gray-300">Top cosmic adventurers across the universe!</DialogDescription>
+            </DialogHeader>
+            <div className="mt-4">
+              <table className="w-full">
+                <thead>
+                  <tr>
+                    <th className="text-left text-indigo-300 pb-2">Rank</th>
+                    <th className="text-left text-indigo-300 pb-2">Name</th>
+                    <th className="text-right text-indigo-300 pb-2">Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {leaderboard.map((entry) => (
+                    <tr key={entry.rank} className="border-t border-gray-700">
+                      <td className="py-2 font-medium">{entry.rank}</td>
+                      <td className="py-2">{entry.name}</td>
+                      <td className="py-2 text-right">{entry.score}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="mt-4 flex justify-end">
+              <Button onClick={() => setIsDialogOpen(false)} className="bg-indigo-500 hover:bg-indigo-600">Close</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   )
