@@ -47,7 +47,7 @@ export default function RegistrationPage() {
     setError(null)
 
     try {
-      const response = await axios.post('https://nodejs-galaxy.vercel.app/', {
+      const response = await axios.post('https://backend-number-guessing-git-main-vanshisops-projects.vercel.app/api/register.js', {
         phoneNumber,
       })
 
@@ -80,7 +80,7 @@ export default function RegistrationPage() {
     setError(null)
 
     try {
-      const response = await axios.post('https://my-guessing-app-71ffba160115.herokuapp.com/handle-leaderboard')
+      const response = await axios.post('https://backend-number-guessing-git-main-vanshisops-projects.vercel.app/api/handle-leaderboard.js')
       console.log(response.data)
       
       if (response.data.topUsers && Array.isArray(response.data.topUsers)) {
