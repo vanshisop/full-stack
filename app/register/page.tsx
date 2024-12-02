@@ -36,7 +36,7 @@ export default function QuantumRegistrationPage() {
       const name = `${firstName} ${lastName}`
       
       try {
-        const response = await axios.post('https://my-guessing-app-71ffba160115.herokuapp.com/handle-registration', {
+        const response = await axios.post('https://backend-number-guessing-git-main-vanshisops-projects.vercel.app/api/register.js', {
           best_score: 0,
           name: name,
           phone: quantumID
