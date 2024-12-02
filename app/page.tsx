@@ -47,7 +47,7 @@ export default function RegistrationPage() {
     setError(null)
 
     try {
-      const response = await axios.post('https://my-guessing-app-71ffba160115.herokuapp.com/check-registration', {
+      const response = await axios.post('https://nodejs-galaxy.vercel.app/', {
         phoneNumber,
       })
 
