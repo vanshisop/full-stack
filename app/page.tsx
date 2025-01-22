@@ -47,7 +47,7 @@ export default function RegistrationPage() {
     setError(null)
     console.log(phoneNumber)
     try {
-      const response = await axios.post('../api/register', {
+      const response = await axios.post('../api/register/kl', {
         phoneNumber,
       })
 
