@@ -41,7 +41,7 @@ export default function QuantumRegistrationPage() {
           name: name,
           phone: quantumID
         })
-      
+        console.log(quantumID)
         if (response.data.isRegistered) {
           sessionStorage.setItem('bestScore', "0")
           sessionStorage.setItem('phoneNumber', quantumID)
