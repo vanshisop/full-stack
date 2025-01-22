@@ -99,7 +99,7 @@ export default function QuantumNumberQuest() {
         sessionStorage.setItem('bestScore', newBestScore.toString())
 
         try {
-          const response = await axios.post('https://backend-number-guessing-git-main-vanshisops-projects.vercel.app/api/update-scores.js', {
+          const response = await axios.post('../api/update-scores', {
             phoneNumber, score: newBestScore
           })
   
