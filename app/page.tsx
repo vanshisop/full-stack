@@ -49,6 +49,9 @@ export default function RegistrationPage() {
     try {
       const response = await axios.post('https://backend-number-guessing-git-main-vanshisops-projects.vercel.app/api/register', {
         phoneNumber,
+        headers: {
+          'Content-Type': 'application/json', // Explicitly set the content type
+        },
       })
 
       if (response.data.isRegistered) {
