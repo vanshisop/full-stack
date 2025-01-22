@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Rocket, Atom, Trophy } from "lucide-react"
-import axios from 'axios'
 import { useRouter } from 'next/navigation'
 
 interface LeaderboardEntry {
@@ -40,36 +39,40 @@ export default function RegistrationPage() {
     setPhoneNumber(number)
     setIsValid(validatePhoneNumber(number))
   }
+
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    console.log(phoneNumber);
-    console.log(1)
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+
     try {
-      const response = await axios.post(
-        'https://backend-number-guessing-git-main-vanshisops-projects.vercel.app/api/register.js',
-        { phoneNumber }, // Body of the request
-      );
-  
-      if (response.data.isRegistered) {
-        console.log(response.data.user);
+      const response = await fetch('https://backend-number-guessing-git-main-vanshisops-projects.vercel.app/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ phoneNumber }),
+      })
+
+      const data = await response.json()
+
+      if (data.isRegistered) {
         if (typeof window !== 'undefined') {
-          sessionStorage.setItem('bestScore', response.data.best_score.toString());
-          sessionStorage.setItem('phoneNumber', response.data.phoneNumber);
-          sessionStorage.setItem('name', response.data.user);
+          sessionStorage.setItem('bestScore', data.best_score.toString())
+          sessionStorage.setItem('phoneNumber', data.phoneNumber)
+          sessionStorage.setItem('name', data.user)
         }
-        router.push('/play');
+        router.push('/play')
       } else {
-        setValidRegistration(false);
+        setValidRegistration(false)
       }
     } catch (error) {
-      console.error('Error checking registration:', error);
-      setError('An error occurred while checking registration. Please try again.');
+      console.error('Error checking registration:', error)
+      setError('An error occurred while checking registration. Please try again.')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-};
+  }
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -81,19 +84,24 @@ export default function RegistrationPage() {
     setError(null)
 
     try {
-      const response = await axios.post('https://backend-number-guessing-git-main-vanshisops-projects.vercel.app/api/handle-leaderboard.js')
-      console.log(response.data)
-      
-      if (response.data.topUsers && Array.isArray(response.data.topUsers)) {
-        const leaderboardData: LeaderboardEntry[] = response.data.topUsers.map((user: User, index: number) => ({
+      const response = await fetch('https://backend-number-guessing-git-main-vanshisops-projects.vercel.app/api/handle-leaderboard', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      const data = await response.json()
+
+      if (data.topUsers && Array.isArray(data.topUsers)) {
+        const leaderboardData: LeaderboardEntry[] = data.topUsers.map((user: User, index: number) => ({
           rank: index + 1,
           name: user.full_name,
-          score: user.best_score
+          score: user.best_score,
         }))
-        
+
         setLeaderboard(leaderboardData)
         setIsDialogOpen(true)
-        console.log('Leaderboard fetched successfully:', leaderboardData)
       } else {
         throw new Error('Invalid leaderboard data received')
       }
