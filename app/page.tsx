@@ -45,7 +45,7 @@ export default function RegistrationPage() {
     setLoading(true);
     setError(null);
     console.log(phoneNumber);
-  
+    console.log(1)
     try {
       const response = await axios.post(
         'https://backend-number-guessing-git-main-vanshisops-projects.vercel.app/api/register',
