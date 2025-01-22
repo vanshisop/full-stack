@@ -80,7 +80,7 @@ export default function RegistrationPage() {
     setError(null)
 
     try {
-      const response = await axios.post('https://backend-number-guessing-git-main-vanshisops-projects.vercel.app/api/handle-leaderboard.js')
+      const response = await axios.post('https://my-guessing-number-lbhc.vercel.app/api/handle-leaderboard.js')
       console.log(response.data)
       
       if (response.data.topUsers && Array.isArray(response.data.topUsers)) {
