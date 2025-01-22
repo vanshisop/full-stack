@@ -40,38 +40,37 @@ export default function RegistrationPage() {
     setPhoneNumber(number)
     setIsValid(validatePhoneNumber(number))
   }
-
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
-    console.log(phoneNumber)
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    console.log(phoneNumber);
+  
     try {
-      const response = await axios.post('https://backend-number-guessing-git-main-vanshisops-projects.vercel.app/api/register', {
-        phoneNumber,
-        headers: {
-          'Content-Type': 'application/json', // Explicitly set the content type
-        },
-      })
-
+      const response = await axios.post(
+        'https://backend-number-guessing-git-main-vanshisops-projects.vercel.app/api/register',
+        { phoneNumber }, // Body of the request
+        { headers: { 'Content-Type': 'application/json' } } // Headers
+      );
+  
       if (response.data.isRegistered) {
-        console.log(response.data.user)
+        console.log(response.data.user);
         if (typeof window !== 'undefined') {
-          sessionStorage.setItem('bestScore', response.data.best_score.toString())
-          sessionStorage.setItem('phoneNumber', response.data.phoneNumber)
-          sessionStorage.setItem('name', response.data.user)
+          sessionStorage.setItem('bestScore', response.data.best_score.toString());
+          sessionStorage.setItem('phoneNumber', response.data.phoneNumber);
+          sessionStorage.setItem('name', response.data.user);
         }
-        router.push('/play')
+        router.push('/play');
       } else {
-        setValidRegistration(false)
+        setValidRegistration(false);
       }
     } catch (error) {
-      console.error('Error checking registration:', error)
-      setError('An error occurred while checking registration. Please try again.')
+      console.error('Error checking registration:', error);
+      setError('An error occurred while checking registration. Please try again.');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+};
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
