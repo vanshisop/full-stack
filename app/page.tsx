@@ -48,7 +48,7 @@ export default function RegistrationPage() {
     console.log(1)
     try {
       const response = await axios.post(
-        'https://backend-number-guessing-git-main-vanshisops-projects.vercel.app/api/register',
+        'https://backend-number-guessing-git-main-vanshisops-projects.vercel.app/api/register.js',
         { phoneNumber }, // Body of the request
       );
   
