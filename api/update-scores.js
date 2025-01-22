@@ -5,17 +5,14 @@ const pool = new Pool({
 });
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  const query = 'SELECT full_name, best_score FROM users WHERE best_score > 0 ORDER BY best_score LIMIT 5';
-
-  try {
-    const response = await pool.query(query);
-    res.json({ isUpdated: true, topUsers: response.rows });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Failed to fetch top users' });
-  }
+   const { score, phoneNumber } = req.body;
+    const query = 'UPDATE users SET best_score = $1 WHERE phone = $2';
+    const values = [score, phoneNumber];
+    try {
+        const response = await pool.query(query, values);
+        res.json({ isUpdated: true });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to update score' });
+    }
 }
